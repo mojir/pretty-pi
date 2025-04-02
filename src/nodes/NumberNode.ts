@@ -27,7 +27,7 @@ export class NumberNode extends ExprNode {
     }
 
     // Handle fractions if it's a "nice" fraction
-    const MAX_DENOMINATOR = 100
+    const MAX_DENOMINATOR = 1000
     for (let denominator = 2; denominator <= MAX_DENOMINATOR; denominator++) {
       const numerator = Math.round(this.value * denominator)
       if (Math.abs(this.value - numerator / denominator) < EPSILON) {

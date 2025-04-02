@@ -36,7 +36,7 @@ export class ExpressionParser {
     }
 
 
-    const cfTerms = toContinuedFraction(num, 10);
+    const cfTerms = toContinuedFraction(num, 20);
     const convergents = getConvergents(cfTerms);
 
     for (const [numerator, denominator] of convergents) {
