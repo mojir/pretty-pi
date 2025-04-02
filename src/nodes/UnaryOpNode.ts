@@ -20,6 +20,9 @@ export class UnaryOpNode extends ExprNode {
 
   toString(): string {
     const operandStr = this.operand.toString()
+    if (operandStr === '0') {
+      return '0'
+    }
 
     switch (this.op) {
       case '-': return `-${operandStr}`

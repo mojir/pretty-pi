@@ -64,7 +64,7 @@ describe('testSymbolicPrinter', () => {
     expect(printSymbolically(Math.E / 2)).toBe('e/2')
     expect(printSymbolically(Math.sqrt(2) / 2)).toBe('√2/2')
     expect(printSymbolically(Math.sqrt(3) / 2)).toBe('√3/2')
-    expect(printSymbolically(Math.sqrt(3) / 3)).toBe('√3/3')
+    expect(printSymbolically(Math.sqrt(3) / 3)).toBe('1/√3')
   })
 
   test('trigonometric values', () => {
@@ -116,5 +116,56 @@ describe('testSymbolicPrinter', () => {
     expect(printSymbolically(0.9999999999)).toBe('1') // Number very close to 1 should round to 1
     expect(printSymbolically(-0.0000000001)).toBe('0') // Very small negative number should round to 0
     expect(printSymbolically(-0.9999999999)).toBe('-1') // Number very close to -1 should round to -1
+  })
+
+  test('logarithmic values', () => {
+    expect(printSymbolically(Math.log(Math.E))).toBe('1') // ln(e) = 1
+    expect(printSymbolically(Math.log(1))).toBe('0') // ln(1) = 0
+    expect(printSymbolically(Math.log(Math.E ** 2))).toBe('2') // ln(e²) = 2
+    expect(printSymbolically(Math.log(10) / Math.log(10))).toBe('1') // log₁₀(10) = 1
+    expect(printSymbolically(Math.log(100) / Math.log(10))).toBe('2') // log₁₀(100) = 2
+  })
+
+  test('exponential values', () => {
+    expect(printSymbolically(Math.exp(1))).toBe('e') // e¹ = e
+    expect(printSymbolically(Math.exp(2))).toBe('e²') // e²
+    expect(printSymbolically(Math.exp(0))).toBe('1') // e⁰ = 1
+    expect(printSymbolically(Math.exp(-1))).toBe('1/e') // e⁻¹ = 1/e
+  })
+
+  test('negative powers', () => {
+    expect(printSymbolically(Math.PI ** -1)).toBe('1/π') // π⁻¹ = 1/π
+    expect(printSymbolically(Math.E ** -2)).toBe('1/e²') // e⁻² = 1/e²
+    expect(printSymbolically(2 ** -3)).toBe('1/8') // 2⁻³ = 1/8
+    expect(printSymbolically(Math.sqrt(2) ** -2)).toBe('1/2') // (√2)⁻² = 1/2
+  })
+
+  test('higher roots', () => {
+    expect(printSymbolically(Math.pow(16, 1 / 4))).toBe('2') // ⁴√16 = 2
+    expect(printSymbolically(Math.pow(32, 1 / 5))).toBe('2') // ⁵√32 = 2
+    expect(printSymbolically(Math.pow(81, 1 / 4))).toBe('3') // ⁴√81 = 3
+    expect(printSymbolically(Math.pow(243, 1 / 5))).toBe('3') // ⁵√243 = 3
+  })
+
+  test('large numbers', () => {
+    expect(printSymbolically(1e6)).toBe('1000000') // 1 million
+    expect(printSymbolically(1e-6)).toBe('0.000001') // 1 micro
+    expect(printSymbolically(1e12)).toBe('1000000000000') // 1 trillion
+    expect(printSymbolically(1e-12)).toBe('0.000000000001') // 1 pico
+  })
+
+  test('irrational approximations', () => {
+    expect(printSymbolically(Number(Math.PI.toFixed(5)))).toBe('3.14159') // Approximation of π
+    expect(printSymbolically(Number(Math.E.toFixed(5)))).toBe('2.71828') // Approximation of e
+    expect(printSymbolically(Number(Math.sqrt(2).toFixed(5)))).toBe('1.41421') // Approximation of √2
+    expect(printSymbolically(Number(Math.sqrt(3).toFixed(5)))).toBe('1.73205') // Approximation of √3
+  })
+
+  test('edge cases', () => {
+    expect(printSymbolically(0)).toBe('0') // Zero
+    expect(printSymbolically(-0)).toBe('0') // Negative zero
+    expect(printSymbolically(Infinity)).toBe('∞') // Positive infinity
+    expect(printSymbolically(-Infinity)).toBe('-∞') // Negative infinity
+    expect(printSymbolically(NaN)).toBe('NaN') // Not a number
   })
 })

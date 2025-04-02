@@ -101,9 +101,16 @@ export class ExpressionParser {
     // Recursive decomposition with extra care for square roots
     if (depth < MAX_DEPTH) {
       // Check for π/n pattern
-      for (let denominator = 2; denominator <= 12; denominator++) {
-        if (Math.abs(num - Math.PI / denominator) < EPSILON) {
-          return new BinaryOpNode('/', new ConstantNode('π', Math.PI), new NumberNode(denominator))
+      for (const constant of CONSTANTS) {
+        for (let denominator = 2; denominator <= 12; denominator++) {
+          if (Math.abs(num - constant.value / denominator) < EPSILON) {
+            return new BinaryOpNode('/', 
+              constant.exactForm 
+                ? this.parseExactForm(constant.exactForm) 
+                : new ConstantNode(constant.symbol, constant.value), 
+              new NumberNode(denominator)
+            )
+          }
         }
       }
 

@@ -13,13 +13,20 @@ export class NumberNode extends ExprNode {
     return this.value
   }
 
+
   toString(): string {
+    const EPSILON = 1e-10
+
+    // Round values extremely close to zero to exactly zero
+    if (Math.abs(this.value) < EPSILON) {
+      return "0";
+    }
+
     if (Number.isInteger(this.value)) {
       return this.value.toString()
     }
 
     // Handle fractions if it's a "nice" fraction
-    const EPSILON = 1e-10
     const MAX_DENOMINATOR = 100
     for (let denominator = 2; denominator <= MAX_DENOMINATOR; denominator++) {
       const numerator = Math.round(this.value * denominator)
