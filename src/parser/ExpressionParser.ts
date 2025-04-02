@@ -6,6 +6,7 @@ import { PowerNode } from "../nodes/PowerNode"
 import { RootNode } from "../nodes/RootNode"
 import { UnaryOpNode } from "../nodes/UnaryOpNode"
 import { CONSTANTS, TRIG_VALUES } from "../utils/constants"
+import { getConvergents, identifyQuadraticIrrational, toContinuedFraction } from "../utils/continuedFractions"
 import { shouldPreserveDirectRadical, factorizeRadicand, isPrime } from "../utils/factorization"
 
 /**
@@ -34,15 +35,25 @@ export class ExpressionParser {
       return new NumberNode(Math.round(num))
     }
 
-    // Check for simple fractions - This should come before constant checks
-    const MAX_DENOMINATOR = 100
-    for (let denominator = 2; denominator <= MAX_DENOMINATOR; denominator++) {
-      const numerator = Math.round(num * denominator)
-      if (Math.abs(num - numerator / denominator) < EPSILON) {
-        const gcd = this.findGCD(Math.abs(numerator), denominator)
-        return new BinaryOpNode('/', new NumberNode(numerator / gcd), new NumberNode(denominator / gcd))
+
+    const cfTerms = toContinuedFraction(num, 10);
+    const convergents = getConvergents(cfTerms);
+
+    for (const [numerator, denominator] of convergents) {
+      // Only consider fractions with reasonably-sized components
+      if (denominator <= 1000 && Math.abs(numerator) <= 10000) {
+        // Verify the approximation is within our epsilon
+        if (Math.abs(num - numerator / denominator) < EPSILON) {
+          const gcd = this.findGCD(Math.abs(numerator), denominator);
+          return new BinaryOpNode(
+            '/',
+            new NumberNode(numerator / gcd),
+            new NumberNode(denominator / gcd)
+          );
+        }
       }
     }
+
 
     // Try direct matches to constants
     for (const constant of CONSTANTS) {
@@ -60,6 +71,12 @@ export class ExpressionParser {
         }
         return new ConstantNode(trigValue.symbol, trigValue.value)
       }
+    }
+
+    const quadraticForm = identifyQuadraticIrrational(num);
+    if (quadraticForm) {
+      // If we identified something like "√7" or "(√13-3)/2"
+      return this.parseExactForm(quadraticForm);
     }
 
     // Direct check for square roots before other decompositions
@@ -104,10 +121,10 @@ export class ExpressionParser {
       for (const constant of CONSTANTS) {
         for (let denominator = 2; denominator <= 12; denominator++) {
           if (Math.abs(num - constant.value / denominator) < EPSILON) {
-            return new BinaryOpNode('/', 
-              constant.exactForm 
-                ? this.parseExactForm(constant.exactForm) 
-                : new ConstantNode(constant.symbol, constant.value), 
+            return new BinaryOpNode('/',
+              constant.exactForm
+                ? this.parseExactForm(constant.exactForm)
+                : new ConstantNode(constant.symbol, constant.value),
               new NumberNode(denominator)
             )
           }
@@ -327,12 +344,16 @@ export class ExpressionParser {
       return true
     }
 
-    // Check if it's close to a simple fraction
-    const MAX_DENOMINATOR = 20
-    for (let denominator = 2; denominator <= MAX_DENOMINATOR; denominator++) {
-      const numerator = Math.round(num * denominator)
-      if (Math.abs(num - numerator / denominator) < EPSILON) {
-        return true
+    const cfTerms = toContinuedFraction(num, 10);
+    const convergents = getConvergents(cfTerms);
+
+    // Check if any convergent is a good approximation and reasonably simple
+    for (const [numerator, denominator] of convergents) {
+      // Only consider "nice" fractions (reasonable size numerator/denominator)
+      if (denominator <= 20 && Math.abs(numerator) <= 50) {
+        if (Math.abs(num - numerator / denominator) < EPSILON) {
+          return true;
+        }
       }
     }
 
