@@ -13,7 +13,7 @@ import { ExpressionParser } from "./parser/ExpressionParser"
  * @param num The number to convert to symbolic form
  * @returns A string containing the symbolic representation
  */
-export function printSymbolically(num: number): string {
+export function prettyPi(num: number): string {
   const parser = new ExpressionParser()
   const exprTree = parser.parseNumber(num)
   const simplified = exprTree.simplify()

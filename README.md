@@ -20,18 +20,18 @@ npm install pretty-pi
 ## Usage
 
 ```typescript
-import { printSymbolically } from 'pretty-pi';
+import { prettyPi } from "pretty-pi";
 
-console.log(printSymbolically(Math.PI));                // "π"
-console.log(printSymbolically(Math.E));                 // "e"
-console.log(printSymbolically(0.5));                    // "1/2"
-console.log(printSymbolically(Math.sqrt(2)));           // "√2"
-console.log(printSymbolically(2 * Math.PI));            // "2·π"
-console.log(printSymbolically(Math.PI / 2));            // "π/2"
-console.log(printSymbolically(Math.sin(Math.PI / 4)));  // "√2/2"
-console.log(printSymbolically(Math.PI ** 2));           // "π²"
-console.log(printSymbolically(Math.E * Math.PI));       // "e·π"
-console.log(printSymbolically(12 * Math.cos(Math.PI / 6))); // "6·√3"
+console.log(prettyPi(Math.PI)); // "π"
+console.log(prettyPi(Math.E)); // "e"
+console.log(prettyPi(0.5)); // "1/2"
+console.log(prettyPi(Math.sqrt(2))); // "√2"
+console.log(prettyPi(2 * Math.PI)); // "2·π"
+console.log(prettyPi(Math.PI / 2)); // "π/2"
+console.log(prettyPi(Math.sin(Math.PI / 4))); // "√2/2"
+console.log(prettyPi(Math.PI ** 2)); // "π²"
+console.log(prettyPi(Math.E * Math.PI)); // "e·π"
+console.log(prettyPi(12 * Math.cos(Math.PI / 6))); // "6·√3"
 ```
 
 ## How It Works

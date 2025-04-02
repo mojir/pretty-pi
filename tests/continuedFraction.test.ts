@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { toContinuedFraction, fromContinuedFraction, getConvergents, identifyQuadraticIrrational } from '../src/utils/continuedFractions'
-import { printSymbolically } from '../src'
+import { prettyPi } from '../src'
 
 describe('continuedFractions', () => {
   test('toContinuedFraction converts numbers to continued fraction form', () => {
@@ -41,10 +41,10 @@ describe('continuedFractions', () => {
 
   test('complex fractions identified correctly with continued fractions', () => {
     // Test with some complex but "nice" fractions
-    expect(printSymbolically(355 / 113)).toBe('355/113'); // A good approximation of π
-    expect(printSymbolically(22 / 7)).toBe('22/7'); // Another approximation of π
-    expect(printSymbolically(1.618033988749895)).toBe('φ'); // Golden ratio
-    expect(printSymbolically(89 / 55)).toBe('89/55'); // Approximation of golden ratio
+    expect(prettyPi(355 / 113)).toBe('355/113'); // A good approximation of π
+    expect(prettyPi(22 / 7)).toBe('22/7'); // Another approximation of π
+    expect(prettyPi(1.618033988749895)).toBe('φ'); // Golden ratio
+    expect(prettyPi(89 / 55)).toBe('89/55'); // Approximation of golden ratio
   })
 
   test('continued fraction approach finds better fractions', () => {
@@ -53,13 +53,13 @@ describe('continuedFractions', () => {
     // 355/113 is an excellent approximation of π 
     // (needs denominators up to 113 to find)
     // const piApprox = 355 / 113; // approximately 3.1415929...
-    // expect(printSymbolically(piApprox)).toBe('355/113');
+    // expect(prettyPi(piApprox)).toBe('355/113');
 
     // 1393/1001 is hard to find with sequential checking
     const complexFraction = 1393 / 1001; // approximately 1.3916084...
-    expect(printSymbolically(complexFraction)).toBe('199/143'); // 199/143 is a good approximation
+    expect(prettyPi(complexFraction)).toBe('199/143'); // 199/143 is a good approximation
 
     // Check that it can handle "nicer" representations of complex fractions
-    expect(printSymbolically(833 / 32)).toBe('833/32');
+    expect(prettyPi(833 / 32)).toBe('833/32');
   })
 })
