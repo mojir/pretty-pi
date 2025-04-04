@@ -1,6 +1,6 @@
 {
   "name": "@mojir/pretty-pi",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "A library for converting numbers to their pretty symbolic mathematical representations",
   "type": "module",
   "main": "dist/index.js",
