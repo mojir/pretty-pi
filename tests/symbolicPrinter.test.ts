@@ -5,6 +5,25 @@ import { prettyPi } from '../src'
  * Test the symbolic printer with various test cases
  */
 describe('testSymbolicPrinter', () => {
+  test('space separated output', () => {
+    expect(prettyPi(345 / 456, { spaceSeparation: true })).toBe('115 / 152')
+    expect(prettyPi(2 * Math.PI, { spaceSeparation: true })).toBe('2 · π')
+    expect(prettyPi(3 * Math.E, { spaceSeparation: true })).toBe('3 · e')
+    expect(prettyPi(-Math.PI, { spaceSeparation: true })).toBe('-(π)')
+    expect(prettyPi(-2 * Math.PI, { spaceSeparation: true })).toBe('-(2 · π)')
+    expect(prettyPi(2 * Math.sqrt(2), { spaceSeparation: true })).toBe('2 · √2')
+    expect(prettyPi(3 * Math.sqrt(3), { spaceSeparation: true })).toBe('3 · √3')
+    expect(prettyPi(2 * Math.PI + 1, { spaceSeparation: true })).toBe('2 · π + 1')
+    expect(prettyPi(Math.PI - 1, { spaceSeparation: true })).toBe('π - 1')
+    expect(prettyPi(2 * Math.PI - 3, { spaceSeparation: true })).toBe('2 · π - 3')
+  })
+
+  test('precision', () => {
+    expect(prettyPi(0.1234567890123456789)).toBe('0.12345679') // Default precision of 8
+    expect(prettyPi(0.1234567890123456789, { precision: 5 })).toBe('0.12346') // Precision of 5
+    expect(prettyPi(0.1234567890123456789, { precision: 10 })).toBe('0.1234567890') // Precision of 10
+  })
+
   test('basic constants', () => {
     expect(prettyPi(Math.PI)).toBe('π')
     expect(prettyPi(Math.E)).toBe('e')
@@ -151,7 +170,7 @@ describe('testSymbolicPrinter', () => {
     expect(prettyPi(1e6)).toBe('1000000') // 1 million
     expect(prettyPi(1e-6)).toBe('0.000001') // 1 micro
     expect(prettyPi(1e12)).toBe('1000000000000') // 1 trillion
-    expect(prettyPi(1e-12)).toBe('0.000000000001') // 1 pico
+    expect(prettyPi(1e-12)).toBe('0') // 1 pico
   })
 
   test('irrational approximations', () => {

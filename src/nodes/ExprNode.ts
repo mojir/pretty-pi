@@ -2,6 +2,7 @@
  * Base abstract class for all expression nodes
  */
 export abstract class ExprNode {
+  public abstract readonly type: 'Root' | 'UnaryOp' | 'BinaryOp' | 'Constant' | 'Number' | 'Power'
   /**
    * Computes the numerical value of the expression
    */

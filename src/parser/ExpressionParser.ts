@@ -1,13 +1,13 @@
-import { BinaryOpNode } from "../nodes/BinaryOpNode"
+import { BinaryOpNode, RootNode } from "../nodes/OpNodes"
 import { ConstantNode } from "../nodes/ConstantNode"
 import { ExprNode } from "../nodes/ExprNode"
 import { NumberNode } from "../nodes/NumberNode"
-import { PowerNode } from "../nodes/PowerNode"
-import { RootNode } from "../nodes/RootNode"
-import { UnaryOpNode } from "../nodes/UnaryOpNode"
-import { CONSTANTS, TRIG_VALUES } from "../utils/constants"
+import { PowerNode } from '../nodes/OpNodes'
+import { UnaryOpNode } from '../nodes/OpNodes'
+import { CONFIG, CONSTANTS, TRIG_VALUES } from "../utils/constants"
 import { getConvergents, identifyQuadraticIrrational, toContinuedFraction } from "../utils/continuedFractions"
 import { shouldPreserveDirectRadical, factorizeRadicand, isPrime } from "../utils/factorization"
+import { isConstantNode, isNumberNode } from "../utils/typeguard"
 
 /**
  * Parser to convert numeric values to expression trees
@@ -17,11 +17,10 @@ export class ExpressionParser {
    * Main parsing function that converts a number to an expression tree
    */
   parseNumber(num: number, depth: number = 0): ExprNode {
-    const EPSILON = 1e-10
     const MAX_DEPTH = 3
 
     // Handle zero
-    if (Math.abs(num) < EPSILON) {
+    if (Math.abs(num) < CONFIG.epsilon) {
       return new NumberNode(0)
     }
 
@@ -31,7 +30,7 @@ export class ExpressionParser {
     }
 
     // Handle integers
-    if (Math.abs(num - Math.round(num)) < EPSILON) {
+    if (Math.abs(num - Math.round(num)) < CONFIG.epsilon) {
       return new NumberNode(Math.round(num))
     }
 
@@ -43,7 +42,7 @@ export class ExpressionParser {
       // Only consider fractions with reasonably-sized components
       if (denominator <= 1000 && Math.abs(numerator) <= 10000) {
         // Verify the approximation is within our epsilon
-        if (Math.abs(num - numerator / denominator) < EPSILON) {
+        if (Math.abs(num - numerator / denominator) < CONFIG.epsilon) {
           const gcd = this.findGCD(Math.abs(numerator), denominator);
           return new BinaryOpNode(
             '/',
@@ -57,19 +56,19 @@ export class ExpressionParser {
 
     // Try direct matches to constants
     for (const constant of CONSTANTS) {
-      if (Math.abs(num - constant.value) < EPSILON) {
-        return new ConstantNode(constant.symbol, constant.value)
+      if (Math.abs(num - constant.value) < CONFIG.epsilon) {
+        return new ConstantNode(constant.getSymbol(), constant.value)
       }
     }
 
     // Try direct matches to trig values
     for (const trigValue of TRIG_VALUES) {
-      if (Math.abs(num - trigValue.value) < EPSILON) {
+      if (Math.abs(num - trigValue.value) < CONFIG.epsilon) {
         // If it has an exact form, parse that instead
-        if (trigValue.exactForm) {
-          return this.parseExactForm(trigValue.exactForm)
+        if (trigValue.getExactForm) {
+          return this.parseExactForm(trigValue.getExactForm())
         }
-        return new ConstantNode(trigValue.symbol, trigValue.value)
+        return new ConstantNode(trigValue.getSymbol(), trigValue.value)
       }
     }
 
@@ -82,7 +81,7 @@ export class ExpressionParser {
     // Direct check for square roots before other decompositions
     // This ensures square roots of integers are handled directly
     for (let i = 2; i <= 100; i++) {
-      if (Math.abs(num - Math.sqrt(i)) < EPSILON) {
+      if (Math.abs(num - Math.sqrt(i)) < CONFIG.epsilon) {
         // Use our enhanced check to determine if we should keep direct form
         if (shouldPreserveDirectRadical(i)) {
           return new RootNode(new NumberNode(i))
@@ -106,10 +105,10 @@ export class ExpressionParser {
     // Check for powers
     for (const constant of [...CONSTANTS, ...TRIG_VALUES]) {
       for (let power = 2; power <= 3; power++) {
-        if (Math.abs(num - constant.value ** power) < EPSILON) {
-          const baseNode = constant.exactForm
-            ? this.parseExactForm(constant.exactForm)
-            : new ConstantNode(constant.symbol, constant.value)
+        if (Math.abs(num - constant.value ** power) < CONFIG.epsilon) {
+          const baseNode = constant.getExactForm
+            ? this.parseExactForm(constant.getExactForm())
+            : new ConstantNode(constant.getSymbol(), constant.value)
           return new PowerNode(baseNode, new NumberNode(power))
         }
       }
@@ -120,11 +119,11 @@ export class ExpressionParser {
       // Check for π/n pattern
       for (const constant of CONSTANTS) {
         for (let denominator = 2; denominator <= 12; denominator++) {
-          if (Math.abs(num - constant.value / denominator) < EPSILON) {
+          if (Math.abs(num - constant.value / denominator) < CONFIG.epsilon) {
             return new BinaryOpNode('/',
-              constant.exactForm
-                ? this.parseExactForm(constant.exactForm)
-                : new ConstantNode(constant.symbol, constant.value),
+              constant.getExactForm
+                ? this.parseExactForm(constant.getExactForm())
+                : new ConstantNode(constant.getSymbol(), constant.value),
               new NumberNode(denominator)
             )
           }
@@ -133,33 +132,33 @@ export class ExpressionParser {
 
       // Check for products with more careful handling of square roots
       for (const constant of [...CONSTANTS, ...TRIG_VALUES]) {
-        if (Math.abs(constant.value) > EPSILON) {
+        if (Math.abs(constant.value) > CONFIG.epsilon) {
           const multiplier = num / constant.value
 
           // Skip square root decomposition attempts for prime square roots
-          if (constant.symbol && constant.symbol.startsWith('√')
-            && isPrime(Number.parseInt(constant.symbol.substring(1)))) {
+          if (constant.getSymbol() && constant.getSymbol().startsWith('√')
+            && isPrime(Number.parseInt(constant.getSymbol(true).substring(1)))) {
             continue
           }
 
           // Skip common fractions that might be misidentified as complex expressions
-          if ((Math.abs(multiplier - 0.75) < EPSILON)
-            || (Math.abs(multiplier - 0.5) < EPSILON)
-            || (Math.abs(multiplier - 0.25) < EPSILON)
-            || (Math.abs(multiplier - 0.3333333333333333) < EPSILON)
-            || (Math.abs(multiplier - 0.6666666666666666) < EPSILON)) {
+          if ((Math.abs(multiplier - 0.75) < CONFIG.epsilon)
+            || (Math.abs(multiplier - 0.5) < CONFIG.epsilon)
+            || (Math.abs(multiplier - 0.25) < CONFIG.epsilon)
+            || (Math.abs(multiplier - 0.3333333333333333) < CONFIG.epsilon)
+            || (Math.abs(multiplier - 0.6666666666666666) < CONFIG.epsilon)) {
             continue
           }
 
           if (this.isNiceValue(multiplier)) {
             const multiplierNode = this.parseNumber(multiplier, depth + 1)
-            const valueNode = constant.exactForm
-              ? this.parseExactForm(constant.exactForm)
-              : new ConstantNode(constant.symbol, constant.value)
+            const valueNode = constant.getExactForm
+              ? this.parseExactForm(constant.getExactForm())
+              : new ConstantNode(constant.getSymbol(), constant.value)
 
             // If multiplier is 1, just return the constant
-            if (multiplierNode instanceof NumberNode
-              && Math.abs(multiplierNode.evaluate() - 1) < EPSILON) {
+            if (isNumberNode(multiplierNode)
+              && Math.abs(multiplierNode.evaluate() - 1) < CONFIG.epsilon) {
               return valueNode
             }
 
@@ -169,7 +168,7 @@ export class ExpressionParser {
             // Define a priority order for constants
             // Lower number = higher priority (should appear first)
             const getConstantPriority = (node: ExprNode) => {
-              if (!(node instanceof ConstantNode))
+              if (!(isConstantNode(node)))
                 return 100
 
               const symbol = node.getSymbol()
@@ -185,7 +184,7 @@ export class ExpressionParser {
             }
 
             // Apply the priority ordering
-            if (multiplierNode instanceof ConstantNode && valueNode instanceof ConstantNode) {
+            if (isConstantNode(multiplierNode) && isConstantNode(valueNode)) {
               // When multiplying two constants, order them by priority
               const multiplierPriority = getConstantPriority(multiplierNode)
               const valuePriority = getConstantPriority(valueNode)
@@ -197,7 +196,7 @@ export class ExpressionParser {
                 productNode = new BinaryOpNode('*', valueNode, multiplierNode)
               }
             }
-            else if (multiplierNode instanceof NumberNode) {
+            else if (isNumberNode(multiplierNode)) {
               // Number multiplier always goes first
               productNode = new BinaryOpNode('*', multiplierNode, valueNode)
             }
@@ -216,7 +215,7 @@ export class ExpressionParser {
               const productValue = productNode.evaluate()
               const sum = productValue + addend
 
-              if (Math.abs(num - sum) < EPSILON) {
+              if (Math.abs(num - sum) < CONFIG.epsilon) {
                 return new BinaryOpNode('+', productNode, new NumberNode(addend))
               }
             }
@@ -231,13 +230,13 @@ export class ExpressionParser {
         const remainder = num - constant.value
         if (this.isNiceValue(remainder)) {
           const remainderNode = this.parseNumber(remainder, depth + 1)
-          const valueNode = constant.exactForm
-            ? this.parseExactForm(constant.exactForm)
-            : new ConstantNode(constant.symbol, constant.value)
+          const valueNode = constant.getExactForm
+            ? this.parseExactForm(constant.getExactForm())
+            : new ConstantNode(constant.getSymbol(), constant.value)
 
           // If remainder is 0, just return the constant
-          if (remainderNode instanceof NumberNode
-            && Math.abs(remainderNode.evaluate()) < EPSILON) {
+          if (isNumberNode(remainderNode)
+            && Math.abs(remainderNode.evaluate()) < CONFIG.epsilon) {
             return valueNode
           }
 
@@ -258,17 +257,17 @@ export class ExpressionParser {
 
           if (this.isNiceValue(remainder)) {
             // Create the multiple constant node
-            const constantNode = constant.exactForm
-              ? this.parseExactForm(constant.exactForm)
-              : new ConstantNode(constant.symbol, constant.value)
+            const constantNode = constant.getExactForm
+              ? this.parseExactForm(constant.getExactForm())
+              : new ConstantNode(constant.getSymbol(), constant.value)
             const multipleNode = new BinaryOpNode('*', new NumberNode(multiplier), constantNode)
 
             // Create the remainder node
             const remainderNode = this.parseNumber(remainder, depth + 1)
 
             // If remainder is 0, just return the multiple
-            if (remainderNode instanceof NumberNode
-              && Math.abs(remainderNode.evaluate()) < EPSILON) {
+            if (isNumberNode(remainderNode)
+              && Math.abs(remainderNode.evaluate()) < CONFIG.epsilon) {
               return multipleNode
             }
 
@@ -284,7 +283,7 @@ export class ExpressionParser {
 
       // Check for cube roots of integers
       for (let i = 2; i <= 100; i++) {
-        if (Math.abs(num - Math.cbrt(i)) < EPSILON) {
+        if (Math.abs(num - Math.cbrt(i)) < CONFIG.epsilon) {
           return new UnaryOpNode('cbrt', new NumberNode(i))
         }
       }
@@ -293,7 +292,7 @@ export class ExpressionParser {
     // Final direct check for square roots before giving up
     // This ensures we catch any square roots we might have missed
     const possibleRadicand = Math.round(num * num)
-    if (Math.abs(num - Math.sqrt(possibleRadicand)) < EPSILON) {
+    if (Math.abs(num - Math.sqrt(possibleRadicand)) < CONFIG.epsilon) {
       return new RootNode(new NumberNode(possibleRadicand))
     }
 
@@ -324,8 +323,8 @@ export class ExpressionParser {
 
     // Handle known constants
     for (const constant of CONSTANTS) {
-      if (exactForm === constant.symbol) {
-        return new ConstantNode(constant.symbol, constant.value)
+      if (exactForm === constant.getSymbol()) {
+        return new ConstantNode(constant.getSymbol(), constant.value)
       }
     }
 
@@ -337,10 +336,9 @@ export class ExpressionParser {
    * Helper to determine if a value is "nice"
    */
   private isNiceValue(num: number): boolean {
-    const EPSILON = 1e-10
 
     // Check if it's close to an integer
-    if (Math.abs(num - Math.round(num)) < EPSILON) {
+    if (Math.abs(num - Math.round(num)) < CONFIG.epsilon) {
       return true
     }
 
@@ -351,7 +349,7 @@ export class ExpressionParser {
     for (const [numerator, denominator] of convergents) {
       // Only consider "nice" fractions (reasonable size numerator/denominator)
       if (denominator <= 20 && Math.abs(numerator) <= 50) {
-        if (Math.abs(num - numerator / denominator) < EPSILON) {
+        if (Math.abs(num - numerator / denominator) < CONFIG.epsilon) {
           return true;
         }
       }
@@ -360,7 +358,7 @@ export class ExpressionParser {
     // Check if it's a square root of a small integer (highest priority)
     // This helps prefer direct √n forms
     for (let i = 2; i <= 30; i++) {
-      if (Math.abs(num - Math.sqrt(i)) < EPSILON) {
+      if (Math.abs(num - Math.sqrt(i)) < CONFIG.epsilon) {
         // Give very high priority to prime square roots
         if (isPrime(i)) {
           return true
@@ -374,14 +372,14 @@ export class ExpressionParser {
 
     // Check if it's close to a common constant
     for (const constant of CONSTANTS) {
-      if (Math.abs(num - constant.value) < EPSILON) {
+      if (Math.abs(num - constant.value) < CONFIG.epsilon) {
         return true
       }
     }
 
     // Check trig values
     for (const value of TRIG_VALUES) {
-      if (Math.abs(num - value.value) < EPSILON) {
+      if (Math.abs(num - value.value) < CONFIG.epsilon) {
         return true
       }
     }
@@ -393,7 +391,7 @@ export class ExpressionParser {
     ]
 
     for (const value of COMMON_VALUES) {
-      if (Math.abs(num - value) < EPSILON) {
+      if (Math.abs(num - value) < CONFIG.epsilon) {
         return true
       }
     }

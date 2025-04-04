@@ -1,9 +1,12 @@
+import { isConstantNode } from '../utils/typeguard'
 import { ExprNode } from './ExprNode'
 
 /**
  * Node for mathematical constants (π, e, etc.)
  */
 export class ConstantNode extends ExprNode {
+  public readonly type = 'Constant'
+
   constructor(private symbol: string, private value: number) {
     super()
   }
@@ -21,7 +24,7 @@ export class ConstantNode extends ExprNode {
   }
 
   equals(other: ExprNode): boolean {
-    if (!(other instanceof ConstantNode))
+    if (!(isConstantNode(other)))
       return false
     return this.symbol === other.symbol
   }

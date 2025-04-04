@@ -1,3 +1,5 @@
+import { CONFIG } from "../utils/constants"
+
 /**
  * Converts a number to its continued fraction representation
  * @param x The number to convert
@@ -6,20 +8,18 @@
  */
 export function toContinuedFraction(x: number, maxTerms: number = 20): number[] {
   const terms: number[] = [];
-  const EPSILON = 1e-10;
-
   for (let i = 0; i < maxTerms; i++) {
     const a = Math.floor(x);
     terms.push(a);
 
     // If we've reached a very small remainder, we're done
-    if (Math.abs(x - a) < EPSILON) {
+    if (Math.abs(x - a) < CONFIG.epsilon) {
       break;
     }
 
     // Prevent division by zero and avoid floating point issues
     const remainder = x - a;
-    if (Math.abs(remainder) < EPSILON) {
+    if (Math.abs(remainder) < CONFIG.epsilon) {
       break;
     }
 
@@ -94,23 +94,21 @@ export function hasRepeatingPattern(terms: number[]): boolean {
  * @returns The identified form or null if not recognized
  */
 export function identifyQuadraticIrrational(x: number): string | null {
-  const EPSILON = 1e-10;
-
   // Direct checks for common values
 
   // Check for square roots of integers
   for (let n = 2; n <= 20; n++) {
-    if (Math.abs(x - Math.sqrt(n)) < EPSILON) {
+    if (Math.abs(x - Math.sqrt(n)) < CONFIG.epsilon) {
       return `√${n}`;
     }
   }
 
   // Check for golden ratio and its conjugate
-  if (Math.abs(x - (1 + Math.sqrt(5)) / 2) < EPSILON) {
+  if (Math.abs(x - (1 + Math.sqrt(5)) / 2) < CONFIG.epsilon) {
     return "φ"; // Already defined as a constant
   }
 
-  if (Math.abs(x - (Math.sqrt(5) - 1) / 2) < EPSILON) {
+  if (Math.abs(x - (Math.sqrt(5) - 1) / 2) < CONFIG.epsilon) {
     return "(√5-1)/2";
   }
 
@@ -121,7 +119,7 @@ export function identifyQuadraticIrrational(x: number): string | null {
     for (let m = 1; m <= 10; m++) {
       for (let k = 2; k <= 10; k++) {
         // Check (√n + m)/k
-        if (Math.abs(x - (sqrtN + m) / k) < EPSILON) {
+        if (Math.abs(x - (sqrtN + m) / k) < CONFIG.epsilon) {
           if (m === 1 && k === 2) {
             return `(√${n}+1)/2`;
           } else {
@@ -130,7 +128,7 @@ export function identifyQuadraticIrrational(x: number): string | null {
         }
 
         // Check (√n - m)/k
-        if (Math.abs(x - (sqrtN - m) / k) < EPSILON) {
+        if (Math.abs(x - (sqrtN - m) / k) < CONFIG.epsilon) {
           if (m === 1 && k === 2) {
             return `(√${n}-1)/2`;
           } else {
@@ -187,7 +185,7 @@ export function identifyQuadraticIrrational(x: number): string | null {
     // Try to reconstruct the quadratic form from the pattern
     // (Complex algorithm that would determine D from periodic CF)
     const D = reconstructD(terms[0], period);
-    if (D > 0 && Math.abs(x - Math.sqrt(D)) < EPSILON) {
+    if (D > 0 && Math.abs(x - Math.sqrt(D)) < CONFIG.epsilon) {
       return `√${D}`;
     }
   }
