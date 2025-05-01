@@ -14,6 +14,12 @@ import { Config, setConfig } from "./utils/constants"
  * @returns A string containing the symbolic representation
  */
 export function prettyPi(num: number, config: Partial<Config> = {}): string {
+  if (isNaN(num)) {
+    return "NaN"
+  }
+  if (!isFinite(num)) {
+    return num > 0 ? "∞" : "-∞"
+  }
   setConfig(config)
   const parser = new ExpressionParser()
   const exprTree = parser.parseNumber(num)
