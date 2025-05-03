@@ -14,10 +14,10 @@ import { Config, setConfig } from "./utils/constants"
  * @returns A string containing the symbolic representation
  */
 export function prettyPi(num: number, config: Partial<Config> = {}): string {
-  if (isNaN(num)) {
-    return "NaN"
-  }
   if (!isFinite(num)) {
+    if (isNaN(num)) {
+      return "NaN"
+    }
     return num > 0 ? "∞" : "-∞"
   }
   setConfig(config)

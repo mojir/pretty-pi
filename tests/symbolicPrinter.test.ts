@@ -5,6 +5,11 @@ import { prettyPi } from '../src'
  * Test the symbolic printer with various test cases
  */
 describe('testSymbolicPrinter', () => {
+  test('non finite', () => {
+    expect(prettyPi(1 / 0)).toBe('∞')
+    expect(prettyPi(-1 / 0)).toBe('-∞')
+    expect(prettyPi(Math.sqrt(-1))).toBe('NaN')
+  })
   test('space separated output', () => {
     expect(prettyPi(345 / 456, { spaceSeparation: true })).toBe('115 / 152')
     expect(prettyPi(2 * Math.PI, { spaceSeparation: true })).toBe('2 · π')
