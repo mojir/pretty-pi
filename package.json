@@ -1,10 +1,19 @@
 {
   "name": "@mojir/pretty-pi",
-  "version": "0.0.9",
+  "version": "0.0.12",
   "description": "A library for converting numbers to their pretty symbolic mathematical representations",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.esm.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "files": [
     "dist"
   ],
@@ -13,11 +22,12 @@
     "url": "git+https://github.com/mojir/pretty-pi.git"
   },
   "scripts": {
-    "build": "tsc --project tsconfig.build.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
+    "build": "rollup -c",
+    "prepare": "npm run build",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -30,12 +40,20 @@
   "author": "Albert Mojir",
   "license": "MIT",
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.3",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.2",
     "@types/node": "22.13.17",
     "@typescript-eslint/eslint-plugin": "8.29.0",
     "@typescript-eslint/parser": "8.29.0",
     "eslint": "9.23.0",
     "prettier": "3.5.3",
+    "rollup": "^4.41.0",
     "typescript": "5.8.2",
     "vitest": "3.1.1"
+  },
+  "dependencies": {
+    "tslib": "^2.8.1"
   }
 }
